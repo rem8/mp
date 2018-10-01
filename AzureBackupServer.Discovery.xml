@@ -1,0 +1,359 @@
+﻿<?xml version="1.0" encoding="utf-8"?><ManagementPack ContentReadable="true" SchemaVersion="2.0" OriginalSchemaVersion="1.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <Manifest>
+    <Identity>
+      <ID>AzureBackupServer.Discovery</ID>
+      <Version>1.0.0.0</Version>
+    </Identity>
+    <Name>AzureBackupServer.Discovery</Name>
+    <References>
+      <Reference Alias="Windows">
+        <ID>Microsoft.Windows.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="System">
+        <ID>System.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SC">
+        <ID>Microsoft.SystemCenter.Library</ID>
+        <Version>7.0.8438.6</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="DPM">
+        <ID>Microsoft.SystemCenter.DataProtectionManager.Library</ID>
+        <Version>5.0.1400.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="Health">
+        <ID>System.Health.Library</ID>
+        <Version>7.0.8438.6</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+    </References>
+  </Manifest>
+  <Monitoring>
+    <Discoveries>
+      <Discovery ID="DPMandABSServerDiscovery" Enabled="true" Target="DPM!Microsoft.SystemCenter.DataProtectionManager.2011.Library.DPMSeed" ConfirmDelivery="false" Remotable="true" Priority="Normal">
+        <Category>Discovery</Category>
+        <DiscoveryTypes>
+          <DiscoveryClass TypeID="DPM!Microsoft.SystemCenter.DataProtectionManager.2011.Library.DPMServer" />
+          <DiscoveryRelationship TypeID="DPM!Microsoft.SystemCenter.DataProtectionManager.2011.Library.DPMSeedHostsDPMServer" />
+        </DiscoveryTypes>
+        <DataSource ID="DS" TypeID="Windows!Microsoft.Windows.TimedScript.DiscoveryProvider">
+          <IntervalSeconds>21600</IntervalSeconds>
+          <SyncTime />
+          <ScriptName>DPMDiscovery.vbs</ScriptName>
+          <Arguments>0 $MPElement$ $Target/Id$ $Target/Host/Property[Type="Windows!Microsoft.Windows.Computer"]/PrincipalName$ $Target/Host/Property[Type="Windows!Microsoft.Windows.Computer"]/NetbiosComputerName$ $Target/Host/Property[Type="Windows!Microsoft.Windows.Computer"]/NetbiosDomainName$ "$Target/ManagementGroup/Name$"</Arguments>
+          <ScriptBody>SetLocale("en-us")
+Set oAPI = CreateObject("MOM.ScriptAPI") 
+Set oArgs = WScript.Arguments 
+
+call oAPI.LogScriptEvent("DPMandABSServerDiscovery", 125, 4, "DPM server discovery start event")
+
+if oArgs.Count &lt; 7 Then 
+    call oAPI.LogScriptEvent("DPMandABSServerDiscovery", 12, 1, "Expected 7 arguments. There were only " &amp; oArgs.Count &amp; " arguments. Exiting script.")
+	Wscript.Quit -1
+End If 
+
+SourceType = oArgs(0)
+SourceId = oArgs(1)
+ManagedEntityId = oArgs(2)
+TargetComputer = oArgs(3)
+NetbiosComputerName = oArgs(4)
+NetbiosDomainName = oArgs(5)
+ManagementGroupName = oArgs(6)
+
+Dim dpmProductCode, installstate, dpmversion
+
+Const msiInstallStateUnknown = -1
+Const msiInstallStateAbsent	 = 2
+
+isDPMPresent = True
+
+Set oDiscData = oAPI.CreateDiscoveryData(SourceType, SourceId, ManagedEntityId)
+
+dpmProductCode = "{E8294B82-3BFA-4B2A-96B2-2ECAE2878922}"
+    
+installstate = MsiQueryProductState(dpmProductCode)
+
+if installstate = msiInstallStateUnknown or installState = msiInstallStateAbsent then
+      dpmProductCode = "{68920FC2-0B08-407B-A798-72200605CA81}"
+      installstate = MsiQueryProductState(dpmProductCode)
+End if
+
+if installstate = msiInstallStateUnknown or installState = msiInstallStateAbsent then
+      dpmProductCode = "{967E1926-C053-41E8-AF10-0E0061A9E00F}" ' Azure Backup Server 2016
+      installstate = MsiQueryProductState(dpmProductCode)
+End if
+
+if installstate = msiInstallStateUnknown or installState = msiInstallStateAbsent then
+      dpmProductCode = "{D1AF2ECB-E7FE-4B60-9E0C-4B71296BD95C}"
+      installstate = MsiQueryProductState(dpmProductCode)
+End if
+if installstate = msiInstallStateUnknown or installState = msiInstallStateAbsent then
+      dpmProductCode = "{5620A2FF-8EAC-49FA-A306-B6A1AE1178CB}"
+      installstate = MsiQueryProductState(dpmProductCode)
+End if
+
+if installstate = msiInstallStateUnknown or installState = msiInstallStateAbsent then
+      dpmProductCode = "{99EFD904-A89C-4116-91C9-80FD7FD40DA7}"
+      installstate = MsiQueryProductState(dpmProductCode)
+End if
+if installstate = msiInstallStateUnknown or installState = msiInstallStateAbsent then
+      dpmProductCode = "{B9CC7E82-B9C6-4B86-BA7B-7BD610E31E4F}"
+      installstate = MsiQueryProductState(dpmProductCode)
+End if
+
+if installstate = msiInstallStateUnknown or installState = msiInstallStateAbsent then
+      dpmProductCode = "{F8CD20E6-186D-4F7D-AAAB-5A3190DA8356}"
+      installstate = MsiQueryProductState(dpmProductCode)
+End if
+if installstate = msiInstallStateUnknown or installState = msiInstallStateAbsent then
+      dpmProductCode = "{BA71F725-AB6C-4093-9749-2C255B1DDD76}"
+      installstate = MsiQueryProductState(dpmProductCode)
+End if
+
+if installstate = msiInstallStateUnknown or installState = msiInstallStateAbsent then
+      dpmProductCode = "{7451622E-78BF-4BD6-ACA1-55F7404C68A6}"
+      installstate = MsiQueryProductState(dpmProductCode)
+End if
+if installstate = msiInstallStateUnknown or installState = msiInstallStateAbsent then
+      dpmProductCode = "{569881A7-A4E0-4777-A83D-9B5264E6A53D}"
+      installstate = MsiQueryProductState(dpmProductCode)
+End if
+
+if installstate = msiInstallStateUnknown or installState = msiInstallStateAbsent then
+      dpmProductCode = "{51EDA7E7-8E5C-4E6F-9D51-2C83E2FF20AA}"   ' DPM 2016 product GUID for I386 (MSI_ENGINE_PRODUCT_ID_I386)
+      installstate = MsiQueryProductState(dpmProductCode)
+End if
+if installstate = msiInstallStateUnknown or installState = msiInstallStateAbsent then
+      dpmProductCode = "{C878DB9E-C8F4-408D-9C70-4A36C3BCA9E5}"   ' DPM 2016 product GUID for AMD64 (MSI_ENGINE_PRODUCT_ID_AMD64)
+      installstate = MsiQueryProductState(dpmProductCode)
+End if
+if installstate = msiInstallStateUnknown or installState = msiInstallStateAbsent then      
+      dpmProductCode = MsiQueryDPMProductCode()      
+      installstate = MsiQueryProductState(dpmProductCode)
+End if
+If installstate = msiInstallStateUnknown or installState = msiInstallStateAbsent then
+      call oAPI.LogScriptEvent("DPMandABSServerDiscovery", 125, 1, "DPM is not present on this computer")
+	  isDPMPresent = False
+else
+      'MsgBox("DPM is Present")
+
+      dpmversion = MsiGetProductInfo(dpmProductCode)
+
+      Set oInst = oDiscData.CreateClassInstance("$MPElement[Name="DPM!Microsoft.SystemCenter.DataProtectionManager.2011.Library.DPMServer"]$")
+        
+      call oInst.AddProperty("$MPElement[Name="Windows!Microsoft.Windows.Computer"]/PrincipalName$", TargetComputer)
+      call oInst.AddProperty("$MPElement[Name="DPM!Microsoft.SystemCenter.DataProtectionManager.2011.Library.DPMSeed"]/DPMServerName$", TargetComputer)
+      call oInst.AddProperty("$MPElement[Name="System!System.Entity"]/DisplayName$",NetbiosComputerName)
+      call oInst.AddProperty("$MPElement[Name="DPM!Microsoft.SystemCenter.DataProtectionManager.2011.Library.DPMServer"]/DPMServerName$", TargetComputer)
+      call oInst.AddProperty("$MPElement[Name="DPM!Microsoft.SystemCenter.DataProtectionManager.2011.Library.DPMServer"]/Domain$", NetbiosDomainName)
+
+      call oDiscData.AddInstance(oInst)
+End if 
+
+call oAPI.LogScriptEvent("DPMandABSServerDiscovery", 125, 4, "DPM server discovery SCOM ManagementGroup:" &amp; ManagementGroupName)
+
+AddSCOMServerToDPMSCOMGroup(ManagementGroupName)
+
+if (isDPMPresent) then
+	CheckForScriptLimitRegistry()
+end if
+
+call oAPI.LogScriptEvent("DPMandABSServerDiscovery", 125, 4, "DPM server discovery completed event")
+
+call oAPI.Return(oDiscData)
+
+Function MsiQueryProductState(ProductCode)
+    Dim InstallState
+	
+    Dim Installer : Set Installer = Nothing
+    Set Installer = CreateObject("WindowsInstaller.Installer")
+    InstallState = Installer.ProductState(ProductCode)
+
+    MsiQueryProductState = InstallState
+	
+    Exit Function
+End Function
+
+Function MsiGetProductInfo(ProductCode)
+   Dim InstallInfo
+   Dim Installer : Set Installer = Nothing
+   Set Installer = CreateObject("WindowsInstaller.Installer")
+   InstallInfo = Installer.ProductInfo(ProductCode,"VersionString")
+
+   MsiGetProductInfo = InstallInfo
+End Function
+
+Function MsiQueryDPMProductCode()
+   Dim prodCode : Set prodCode= Nothing
+   Dim Installer : Set Installer = Nothing
+   Dim Products : Set Products = Nothing
+   Set Installer = CreateObject("WindowsInstaller.Installer")
+   Set Products = Installer.Products
+   
+   'regular expression to find product with specific name pattern
+   Set StrRegExp = New RegExp
+   StrRegExp.IgnoreCase = True
+   StrRegExp.Pattern = "Microsoft\s+System\s+Center\s+Data\s+Protection\s+Manager" 
+
+   For each productCode in Products
+     If	StrRegExp.Test(Installer.ProductInfo(productCode, "ProductName")) Then
+	    prodCode = productCode
+	    'MsgBox("DPM is Present" &amp;prodCode )
+        Exit For
+    End If
+  Next
+   
+   MsiQueryDPMProductCode = prodCode
+End Function
+
+Function AddSCOMServerToDPMSCOMGroup(managementGroupName)
+
+  'This is required as discovery should not stop because of err in this script
+  on error resume next
+
+  Const HKEY_LOCAL_MACHINE  = &amp;H80000002
+  Const REG_SZ = 1
+  strComputer = "."
+  hDefKey = HKEY_LOCAL_MACHINE
+  strKeyPath = "SOFTWARE\Microsoft\Microsoft Operations Manager\3.0\Agent Management Groups\" &amp; managementGroupName &amp; "\Parent Health Services\0"
+  dpmConfigKeyPath = "SOFTWARE\Microsoft\Microsoft Data Protection Manager\Configuration"
+  strValueName = "NetworkName"
+  DPMScomGroupName = "DPMScom"
+  
+  'Reading Registry
+  Set oReg = GetObject("winmgmts:{impersonationLevel=impersonate}!\\" &amp; strComputer &amp; "\root\default:StdRegProv")
+  oReg.GetExpandedStringValue hDefKey, strKeyPath, strValueName, scomSvrName
+
+  'Adding To DPMScom Group Variables
+  'Seperating Machine name and domain name
+  DotPosition = InStr (scomSvrName, ".")
+  DomainName = Mid (scomSvrName, DotPosition+1)
+  DotPosition2 = InStr (DomainName, ".")
+  simpleDomainName = Mid (DomainName, 1, DotPosition2 - 1)
+  MachineName = Mid (scomSvrName, 1, DotPosition-1) &amp; "$"
+  Set net = WScript.CreateObject("WScript.Network")
+  local = net.ComputerName
+
+  'Read Machine Name
+  Set WshShell = WScript.CreateObject("WScript.Shell")
+  DPMMachineName = WshShell.ExpandEnvironmentStrings("%COMPUTERNAME%")
+  DPMScomGroupNameDCMachineName = "DPMScom$" &amp; DPMMachineName
+
+  'Adding SCOMServer to DPMSCOM Group for non-dc machine
+  set group = GetObject("WinNT://"&amp; local &amp;"/" &amp; DPMScomGroupName)
+  group.Add "WinNT://"&amp; DomainName &amp;"/"&amp; MachineName &amp;""
+
+  'Adding SCOMServer to DPMSCOM Group for dc machine
+  set group = GetObject("WinNT://"&amp; local &amp;"/DPMScomGroupNameDCMachineName")
+  group.Add "WinNT://"&amp; DomainName &amp;"/"&amp; MachineName &amp;""
+
+  'Adding registry for the scomserver so indicate when discovery happened subKeyName = "domain\serverName$" value = "Just Discovered"
+  valueTemp = "Just Discovered"
+  subKeyValue = simpleDomainName &amp; "\" &amp; MachineName
+  oReg.SetStringValue HKEY_LOCAL_MACHINE, dpmConfigKeyPath, subKeyValue, valueTemp 
+
+End Function
+
+Function CheckForScriptLimitRegistry()
+
+  'This is required as discovery should not stop because of err in this script
+  on error resume next
+
+  Dim objShell
+  Set objShell=CreateObject("WScript.Shell")
+
+  scriptString = "$regPath = 'HKLM:\Software\Microsoft\Microsoft Operations Manager\3.0\Modules\Global\Powershell'  "&amp;_
+  Chr(10) &amp;      "$setRegistry = $false  "&amp;_
+  Chr(10) &amp;      "if(Test-Path $regPath)  "&amp;_
+  Chr(10) &amp;      "{  "&amp;_
+  Chr(10) &amp;      "    write-host ""Key exists""  "&amp;_
+  Chr(10) &amp;      "    $value = Get-ItemProperty -Name ""ScriptLimit"" -Path $regPath -ErrorAction silentlycontinue  "&amp;_
+  Chr(10) &amp;      "    if($value -eq $null)  "&amp;_
+  Chr(10) &amp;      "    {  "&amp;_
+  Chr(10) &amp;      "        New-ItemProperty $regPath -Name ""ScriptLimit"" -Value 15 -PropertyType DWORD  "&amp;_
+  Chr(10) &amp;      "        $setRegistry = $true    "&amp;_
+  Chr(10) &amp;      "    }  "&amp;_
+  Chr(10) &amp;      "    elseif($value.ScriptLimit -gt 15)  "&amp;_
+  Chr(10) &amp;      "    {  "&amp;_
+  Chr(10) &amp;      "        write-host ""Value is null or value is greater than 15""   "&amp;_
+  Chr(10) &amp;      "        Set-ItemProperty -path $regPath -Name ""ScriptLimit"" -Value 15  "&amp;_
+  Chr(10) &amp;      "        $setRegistry = $true    "&amp;_
+  Chr(10) &amp;      "    } "&amp;_
+  Chr(10) &amp;      "}     "&amp;_
+  Chr(10) &amp;      "else  "&amp;_
+  Chr(10) &amp;      "{     "&amp;_
+  Chr(10) &amp;      "    write-host ""Key doesnt exist""   "&amp;_
+  Chr(10) &amp;      "    md $regPath  "&amp;_
+  Chr(10) &amp;      "    New-ItemProperty $regPath -Name ""ScriptLimit"" -Value 15 -PropertyType DWORD  "&amp;_
+  Chr(10) &amp;      "    $setRegistry = $true  "&amp;_
+  Chr(10) &amp;      "}   "&amp;_
+  Chr(10) &amp;      "if($setRegistry)  "&amp;_
+  Chr(10) &amp;      "{  "&amp;_
+  Chr(10) &amp;      "    $evt = new-object System.Diagnostics.EventLog('DPM Alerts');  "&amp;_
+  Chr(10) &amp;      "    $evt.Source = 'DPM-EM';  "&amp;_
+  Chr(10) &amp;      "    $eventSeverity = [System.Diagnostics.EventLogEntryType]::Information;  "&amp;_
+  Chr(10) &amp;      "    $eventString = 'Restarting the health service';  "&amp;_
+  Chr(10) &amp;      "    $eventId = 126;  "&amp;_
+  Chr(10) &amp;      "    $evt.WriteEntry($eventString, $eventSeverity, $eventId)  "&amp;_
+  Chr(10) &amp;      "    $time= (Get-Date).AddMinutes(10)   "&amp;_
+  Chr(10) &amp;      "    $timeStr = $time.ToString('HH:mm')   "&amp;_
+  Chr(10) &amp;      "    $result = schtasks /create /tn DPMDiscoveryHelper /tr 'net start healthservice' /st $timeStr /rl highest /sc once /ru system /rp /f  "&amp;_
+  Chr(10) &amp;      "    if($LASTEXITCODE -eq 0)  "&amp;_
+  Chr(10) &amp;      "    {  "&amp;_
+  Chr(10) &amp;      "       $eventString = 'Successfully created the scheduled task';  "&amp;_
+  Chr(10) &amp;      "    } "&amp;_
+  Chr(10) &amp;      "    else "&amp;_
+  Chr(10) &amp;      "    {  "&amp;_
+  Chr(10) &amp;      "       $eventString = 'Failed creating scheduled task with message' + $result;  "&amp;_
+  Chr(10) &amp;      "    } "&amp;_
+  Chr(10) &amp;      "    $evt.WriteEntry($eventString, $eventSeverity, $eventId)  "&amp;_
+  Chr(10) &amp;      "    Stop-Service healthservice   "&amp;_
+  Chr(10) &amp;      "    Start-Service healthservice  "&amp;_
+  Chr(10) &amp;      "}"
+
+  strCMD="powershell -nologo -command """ &amp; scriptString &amp; """"
+
+  'Uncomment next line for debugging
+  'MsgBox("strCMD: " &amp; strCMD)
+
+  'use 0 to hide window
+  objShell.Run strCMD,0,true
+
+End Function
+          </ScriptBody>
+          <TimeoutSeconds>900</TimeoutSeconds>
+        </DataSource>
+      </Discovery>
+    </Discoveries>
+    <Overrides>
+      <DiscoveryPropertyOverride ID="Disable.Original.DPM.Server.Discovery" Context="DPM!Microsoft.SystemCenter.DataProtectionManager.2011.Library.DPMSeed" Enforced="false" Discovery="DPM!Microsoft.SystemCenter.DataProtectionManager.2011.Library.DPMandABSServerDiscovery" Property="Enabled">
+        <Value>false</Value>
+      </DiscoveryPropertyOverride>
+    </Overrides>
+  </Monitoring>
+  <LanguagePacks>
+    <LanguagePack ID="ENU" IsDefault="true">
+      <DisplayStrings>
+        <DisplayString ElementID="DPMandABSServerDiscovery">
+          <Name>DPM Server and Azure Backup Server Discovery</Name>
+          <Description>DPM Server and Azure Backup Server Discovery</Description>
+        </DisplayString>
+        <DisplayString ElementID="Disable.Original.DPM.Server.Discovery">
+          <Name>NotUsed</Name>
+          <Description>Override disabling discovery is for Addendum Management Pack which additionally enabled Azure Backup Server.</Description>
+        </DisplayString>
+        <DisplayString ElementID="AzureBackupServer.Discovery">
+          <Name>Azure Backup Server Discovery Addendum MP for SC DPM</Name>
+          <Description>This Management Packs extends discovery in System Center Data Protection Manager MP allowing discovery of Azure Backup Server which bases on SCDPM.
+
+Lukasz Rutkowski (lukasz.rem8@gmail.com)</Description>
+        </DisplayString>
+      </DisplayStrings>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPack>
