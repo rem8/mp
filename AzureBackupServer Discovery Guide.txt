@@ -1,0 +1,9 @@
+Azure Backup Server Discovery MP Guide
+
+1.	What is AzureBackupServer.Discovery MP for? 
+a.	It extends SC DPM Management Pack to also discover Azure Backup Server as DPM Class, because ABS bases in 100% on DPM.
+2.	What does it do then?
+a.	It creates new discovery for existing class which also discovers Azure Backup Server as DPM Server
+b.	It disables original SC DPM Server discovery
+3.	How to import it?
+a.	Same as you import other Management Packs from disk 😊 Choose powershell or SCOM Console, whichever easier 😊
